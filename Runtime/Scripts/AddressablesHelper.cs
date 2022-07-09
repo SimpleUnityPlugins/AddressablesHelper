@@ -12,7 +12,7 @@ namespace SUP.AddressablesHelper {
         private static AddressablesHelper _instance;
         private readonly Dictionary<Type, List<IResourceLocation>> _iResourcesLocations;
 
-        public static bool IsReady { get; private set; } = false;
+        public static bool IsReady { get; private set; }
 
         public static AddressablesHelper Instance {
             get {
@@ -118,6 +118,19 @@ namespace SUP.AddressablesHelper {
         public static WaitForAddressablesHelper LoadAssetByAddress<T>(string address, Action<T> onComplete) {
             var waitForAddressablesHelper = new WaitForAddressablesHelper();
             var operationHandle = Addressables.LoadAssetAsync<T>(address);
+            operationHandle.Completed += handle => {
+                var loadedAsset = handle.Result;
+                onComplete.Invoke(loadedAsset);
+                Addressables.Release(loadedAsset);
+                waitForAddressablesHelper.StopWaiting();
+            };
+
+            return waitForAddressablesHelper;
+        }
+
+        public static WaitForAddressablesHelper LoadAssetsByAddress<T>(IEnumerable<string> addressCollection, Action<IEnumerable<T>> onComplete) {
+            var waitForAddressablesHelper = new WaitForAddressablesHelper();
+            var operationHandle = Addressables.LoadAssetsAsync<T>(addressCollection, null, Addressables.MergeMode.Union);
             operationHandle.Completed += handle => {
                 var loadedAsset = handle.Result;
                 onComplete.Invoke(loadedAsset);
