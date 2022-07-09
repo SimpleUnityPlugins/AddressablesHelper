@@ -10,7 +10,7 @@ namespace SUP.AddressablesHelper {
         }
 
         internal void StopWaiting() {
-            _isLoading = true;
+            _isLoading = false;
         }
     }
 }
