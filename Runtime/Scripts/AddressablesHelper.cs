@@ -26,7 +26,7 @@ namespace SUP.AddressablesHelper {
 
         #region Init Functions
 
-        public void Init(Dictionary<string, Type> labelAndTypes) {
+        public static void Init(Dictionary<string, Type> labelAndTypes) {
             _instance = new AddressablesHelper(labelAndTypes);
         }
 
