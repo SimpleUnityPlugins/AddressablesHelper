@@ -1,35 +1,140 @@
-# ExtendedSafeArea
-Extended safe area class for flexible UI design in Unity.
+# Addressables Helper
 
-### Options
-- Full Screen.
-- Width.
-- Height.
+Helper class for Unity's Addressables Asset System.
 
-## Safe Area - Full Screen
+---
 
-![SafeArea_FullScreen](https://user-images.githubusercontent.com/51873927/166136654-ef84c0ce-4c9f-4a85-ac7d-a771b8b03570.jpeg)
+## Installation
 
-## Safe Area - Width
+Refer this link for installation guide:ls
+https://docs.unity3d.com/Manual/upm-ui-giturl.html
+---
 
-![SafeArea_Width](https://user-images.githubusercontent.com/51873927/166136656-13812040-73b5-41c0-90b1-01b86f59ebf3.jpeg)
+# References
 
-## Safe Area - Height
+## Static Methods
 
-![SafeArea_Height](https://user-images.githubusercontent.com/51873927/166136655-814d5c3d-4655-4ff7-bb95-1b2ada34f68a.jpeg)
+### Using asset addresses
 
-##Installation
+1. Load addressables asset using address.
 
-- Copy the git url. `https://github.com/SimpleUnityPlugins/ExtendedSafeArea.git`
-- Go to Unity > Windows > Package Manager.
+```csharp
+    private IEnumerator LoadAsset() {
+        GameObject gamePrefab;
+        yield return AddressablesHelper.LoadAssetByAddress<GameObject>("GamePrefabs/Game1.prefab", gameObj => gamePrefab = gameObj);
+    }
+```
 
-![SafeArea_InstallationDemo](https://user-images.githubusercontent.com/51873927/166137094-dd8b9e0e-6114-4f5f-a260-11992d5f0dea.jpeg)
+2. Load multiple addressables assets using address.
 
-## Guide
+```csharp
+    private IEnumerator LoadAssets() {
+        var assetAddresses = new[] {"GamePrefabs/Game1.prefab", "GamePrefabs/Game2.prefab", "GamePrefabs/Game3.prefab"};
+        List<GameObject> gamePrefabs;
+        yield return AddressablesHelper.LoadAssetsByAddress<GameObject>(assetAddresses, gameObjs => gamePrefabs = gameObjs.ToList());
+    }
+```
 
-Add a full stretch panel and add "Extended Safe Area" script as shown in below image. (Safe area is applied on runtime so please hit play to see the results.)
+---
 
-![SafeArea_Demo](https://user-images.githubusercontent.com/51873927/166136653-4868d30a-60ed-4fd7-a499-581675659d37.jpeg)
+### Using asset labels
+
+1. Load multiple addressables assets using label.
+
+```csharp
+    private IEnumerator LoadAssets() {
+        var assetLabels = "GamePrefabs";
+        List<GameObject> gamePrefabs;
+        yield return AddressablesHelper.LoadAssetsByLabel<GameObject>(assetLabels, gameObjs => gamePrefabs = gameObjs.ToList());
+    }
+```
+
+2. Load multiple addressables assets using multiple label.
+
+```csharp
+    private IEnumerator LoadAssets() {
+        var assetLabels = new[] {"GamePrefabs", "Prefabs"};
+        List<GameObject> gamePrefabs;
+        yield return AddressablesHelper.LoadAssetsByLabels<GameObject>(assetLabels, gameObjs => gamePrefabs = gameObjs.ToList());
+    }
+```
+
+---
+
+## Helper Functions
+
+### Initialize addressables helper class with labels & type of asset.
+
+```csharp
+    private void InitAddressablesHelper() {
+        var labelsAndTypeDict = new Dictionary<string, Type> {
+            {"GamePrefabs", typeof(GameObject)},
+            {"Sprites", typeof(Sprite)},
+            {"SpriteAtlas", typeof(SpriteAtlas)},
+            {"Json", typeof(TextAsset)},
+            {"Materials", typeof(Material)}
+        };
+        AddressablesHelper.Init(labelsAndTypeDict);
+    }
+```
+
+### Load using asset name (No need to pass full asset address)
+
+```csharp
+    private IEnumerator LoadAssets() {
+        GameObject gamePrefab;
+        yield return AddressablesHelper.Instance.LoadAsset<GameObject>("Game1", gameObj => gamePrefab = gameObj);
+    }
+```
+
+### Load using asset name (Matches the given string to existing addresses)
+
+```csharp
+    private IEnumerator LoadAsset() {
+        GameObject gamePrefab;
+        yield return AddressablesHelper.Instance.LoadAsset<GameObject>("Game1", gameObj => gamePrefab = gameObj);
+    }
+```
+
+### Load multiple assets using name (Matches the given string to existing addresses)
+
+```csharp
+    private IEnumerator LoadAssets() {
+        var gameObjectNames = new[] {"Game1", "Game2"};
+        List<GameObject> gamePrefabs;
+        yield return AddressablesHelper.Instance.LoadAssets<GameObject>(gameObjectNames, gameObjCollections => gamePrefabs = gameObjCollections.ToList());
+    }
+```
+
+---
+
+## Demo 
+
+```csharp
+    private void Start() {
+        InitAddressablesHelper();
+        StartCoroutine(LoadAssets());
+    }
+
+    private void InitAddressablesHelper() {
+        var labelsAndTypeDict = new Dictionary<string, Type> {
+            {"GamePrefabs", typeof(GameObject)},
+            {"Sprites", typeof(Sprite)},
+            {"SpriteAtlas", typeof(SpriteAtlas)},
+            {"Json", typeof(TextAsset)},
+            {"Materials", typeof(Material)}
+        };
+        AddressablesHelper.Init(labelsAndTypeDict);
+    }
+
+
+    private IEnumerator LoadAssets() {
+        yield return AddressablesHelper.IsReady; // Waits until addressables helper is initialized.
+        var gameObjectNames = new[] {"Game1", "Game2"};
+        List<GameObject> gamePrefabs;
+        yield return AddressablesHelper.Instance.LoadAssets<GameObject>(gameObjectNames, gameObjCollections => gamePrefabs = gameObjCollections.ToList());
+    }
+```
 
 
 
