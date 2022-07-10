@@ -57,7 +57,7 @@ Refer this link for installation guide: https://docs.unity3d.com/Manual/upm-ui-g
 
 ---
 
-## Helper Functions
+## Non-static Functions
 
 To use the following functions you must initialize the addressables helper class with <b> asset label & asset type </b> as shown below. This is an async task to initialize the class on app/game start.
 
@@ -82,7 +82,7 @@ Before using the following functions please ensure the addressables helper class
    AddressablesHelper.IsReady;
 ```
 
-### 1. Load using asset name (No need to pass the full asset address, matches the given string to existing asset addresses)
+### 1. Load using asset name
 
 ```csharp
     private IEnumerator LoadAssets() {
@@ -91,7 +91,9 @@ Before using the following functions please ensure the addressables helper class
     }
 ```
 
-### 2. Load multiple assets using asset names (No need to pass the full asset addresses, matches the given string to existing asset addresses)
+Note: No need to pass the full asset address, matches the given string to existing asset addresses.
+
+### 2. Load multiple assets using asset names
 
 ```csharp
     private IEnumerator LoadAssets() {
@@ -101,9 +103,11 @@ Before using the following functions please ensure the addressables helper class
     }
 ```
 
+Note: No need to pass the full asset addresses, matches the given string to existing asset addresses.
+
 ---
 
-## Demo 
+## Demo Script  
 
 ```csharp
     private void Start() {
