@@ -12,7 +12,7 @@ Refer this link for installation guide: https://docs.unity3d.com/Manual/upm-ui-g
 
 ### Using asset addresses
 
-1. Load addressables asset using address.
+1. Load addressable asset using address.
 
 ```csharp
     private IEnumerator LoadAsset() {
@@ -21,13 +21,13 @@ Refer this link for installation guide: https://docs.unity3d.com/Manual/upm-ui-g
     }
 ```
 
-2. Load multiple addressables assets using address.
+2. Load multiple addressable assets using addresses.
 
 ```csharp
     private IEnumerator LoadAssets() {
         var assetAddresses = new[] {"GamePrefabs/Game1.prefab", "GamePrefabs/Game2.prefab", "GamePrefabs/Game3.prefab"};
         List<GameObject> gamePrefabs;
-        yield return AddressablesHelper.LoadAssetsByAddress<GameObject>(assetAddresses, gameObjs => gamePrefabs = gameObjs.ToList());
+        yield return AddressablesHelper.LoadAssetsByAddress<GameObject>(assetAddresses, gameObjCollections => gamePrefabs = gameObjCollections.ToList());
     }
 ```
 
@@ -35,23 +35,23 @@ Refer this link for installation guide: https://docs.unity3d.com/Manual/upm-ui-g
 
 ### Using asset labels
 
-1. Load multiple addressables assets using label.
+1. Load multiple addressable assets using asset label.
 
 ```csharp
     private IEnumerator LoadAssets() {
         var assetLabels = "GamePrefabs";
         List<GameObject> gamePrefabs;
-        yield return AddressablesHelper.LoadAssetsByLabel<GameObject>(assetLabels, gameObjs => gamePrefabs = gameObjs.ToList());
+        yield return AddressablesHelper.LoadAssetsByLabel<GameObject>(assetLabels, gameObjCollections => gamePrefabs = gameObjCollections.ToList());
     }
 ```
 
-2. Load multiple addressables assets using multiple label.
+2. Load multiple addressable assets using multiple labels.
 
 ```csharp
     private IEnumerator LoadAssets() {
         var assetLabels = new[] {"GamePrefabs", "Prefabs"};
         List<GameObject> gamePrefabs;
-        yield return AddressablesHelper.LoadAssetsByLabels<GameObject>(assetLabels, gameObjs => gamePrefabs = gameObjs.ToList());
+        yield return AddressablesHelper.LoadAssetsByLabels<GameObject>(assetLabels, gameObjCollections => gamePrefabs = gameObjCollections.ToList());
     }
 ```
 
@@ -74,7 +74,7 @@ Refer this link for installation guide: https://docs.unity3d.com/Manual/upm-ui-g
     }
 ```
 
-### Load using asset name (No need to pass full asset address)
+### 1. Load using asset name (Matches the given string to existing addresses)
 
 ```csharp
     private IEnumerator LoadAssets() {
@@ -83,16 +83,7 @@ Refer this link for installation guide: https://docs.unity3d.com/Manual/upm-ui-g
     }
 ```
 
-### Load using asset name (Matches the given string to existing addresses)
-
-```csharp
-    private IEnumerator LoadAsset() {
-        GameObject gamePrefab;
-        yield return AddressablesHelper.Instance.LoadAsset<GameObject>("Game1", gameObj => gamePrefab = gameObj);
-    }
-```
-
-### Load multiple assets using name (Matches the given string to existing addresses)
+### 2. Load multiple assets using asset names (Matches the given string to existing addresses)
 
 ```csharp
     private IEnumerator LoadAssets() {
