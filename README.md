@@ -2,13 +2,9 @@
 
 Helper class for Unity's Addressables Asset System.
 
----
-
 ## Installation
 
 Refer this link for installation guide: https://docs.unity3d.com/Manual/upm-ui-giturl.html
-
----
 
 # References
 
