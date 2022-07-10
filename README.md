@@ -59,12 +59,14 @@ Refer this link for installation guide: https://docs.unity3d.com/Manual/upm-ui-g
 
 ## Helper Functions
 
-### Initialize addressables helper class with labels & type of asset.
+To use the following functions you must initialize the addressables helper class with <b> asset label & asset type </b> as shown below. This is an async task to initialize the class on app/game start.
+
+### Initialize addressables helper
 
 ```csharp
     private void InitAddressablesHelper() {
         var labelsAndTypeDict = new Dictionary<string, Type> {
-            {"GamePrefabs", typeof(GameObject)},
+            {"GamePrefabs", typeof(GameObject)}, // {AssetLabel , TypeOfAsset}
             {"Sprites", typeof(Sprite)},
             {"SpriteAtlas", typeof(SpriteAtlas)},
             {"Json", typeof(TextAsset)},
@@ -74,7 +76,13 @@ Refer this link for installation guide: https://docs.unity3d.com/Manual/upm-ui-g
     }
 ```
 
-### 1. Load using asset name (Matches the given string to existing addresses)
+Before using the following functions please ensure the addressables helper class is initailized using,
+
+```csharp
+   AddressablesHelper.IsReady;
+```
+
+### 1. Load using asset name (No need to pass the full asset address, matches the given string to existing asset addresses)
 
 ```csharp
     private IEnumerator LoadAssets() {
@@ -83,7 +91,7 @@ Refer this link for installation guide: https://docs.unity3d.com/Manual/upm-ui-g
     }
 ```
 
-### 2. Load multiple assets using asset names (Matches the given string to existing addresses)
+### 2. Load multiple assets using asset names (No need to pass the full asset addresses, matches the given string to existing asset addresses)
 
 ```csharp
     private IEnumerator LoadAssets() {
