@@ -1,3 +1,5 @@
+//Resharper disable all
+
 using System;
 using UnityEngine;
 using System.Linq;
@@ -115,9 +117,9 @@ namespace SUP.AddressablesHelper {
 
         #region By Address
 
-        public static WaitForAddressablesHelper LoadAssetByAddress<T>(string address, Action<T> onComplete) {
+        public static WaitForAddressablesHelper LoadAssetByAddress<T>(string assetAddress, Action<T> onComplete) {
             var waitForAddressablesHelper = new WaitForAddressablesHelper();
-            var operationHandle = Addressables.LoadAssetAsync<T>(address);
+            var operationHandle = Addressables.LoadAssetAsync<T>(assetAddress);
             operationHandle.Completed += handle => {
                 var loadedAsset = handle.Result;
                 onComplete.Invoke(loadedAsset);
@@ -128,9 +130,9 @@ namespace SUP.AddressablesHelper {
             return waitForAddressablesHelper;
         }
 
-        public static WaitForAddressablesHelper LoadAssetsByAddress<T>(IEnumerable<string> addressCollection, Action<IEnumerable<T>> onComplete) {
+        public static WaitForAddressablesHelper LoadAssetsByAddress<T>(IEnumerable<string> assetAddresses, Action<IEnumerable<T>> onComplete) {
             var waitForAddressablesHelper = new WaitForAddressablesHelper();
-            var operationHandle = Addressables.LoadAssetsAsync<T>(addressCollection, null, Addressables.MergeMode.Union);
+            var operationHandle = Addressables.LoadAssetsAsync<T>(assetAddresses, null, Addressables.MergeMode.Union);
             operationHandle.Completed += handle => {
                 var loadedAsset = handle.Result;
                 onComplete.Invoke(loadedAsset);
