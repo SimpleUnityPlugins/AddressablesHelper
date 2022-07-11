@@ -77,10 +77,10 @@ To use the following functions you must initialize the addressables helper class
     }
 ```
 
-Before using the following functions please ensure the addressables helper class is initailized using,
+Before using the following functions for first time, please ensure that the addressables helper is initialized using,
 
 ```csharp
-   AddressablesHelper.IsReady;
+    yield return AddressablesHelper.WaitForInit;
 ```
 
 ### 1. Load using asset name
@@ -129,7 +129,7 @@ Note: No need to pass the full asset addresses, matches the given string to exis
 
 
     private IEnumerator LoadAssets() {
-        yield return AddressablesHelper.IsReady; // Waits until addressables helper is initialized.
+        yield return AddressablesHelper.WaitForInit; // Waits until addressables helper is initialized.
         var gameObjectNames = new[] {"Game1", "Game2"};
         List<GameObject> gamePrefabs;
         yield return AddressablesHelper.Instance.LoadAssets<GameObject>(gameObjectNames, gameObjCollections => gamePrefabs = gameObjCollections.ToList());

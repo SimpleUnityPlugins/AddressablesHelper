@@ -1,4 +1,4 @@
-//Resharper disable all
+// Resharper disable all
 
 using System;
 using UnityEngine;
@@ -14,7 +14,7 @@ namespace SUP.AddressablesHelper {
         private static AddressablesHelper _instance;
         private readonly Dictionary<Type, List<IResourceLocation>> _iResourcesLocations;
 
-        public static WaitForAddressablesHelper IsReady { get; private set; }
+        public static WaitForAddressablesHelper WaitForInit { get; private set; }
 
         public static AddressablesHelper Instance {
             get {
@@ -32,7 +32,7 @@ namespace SUP.AddressablesHelper {
 
         public static void Init(Dictionary<string, Type> labelAndTypes) {
             _instance = new AddressablesHelper(labelAndTypes);
-            IsReady = new WaitForAddressablesHelper();
+            WaitForInit = new WaitForAddressablesHelper();
         }
 
         private AddressablesHelper(Dictionary<string, Type> addressableLabelsAndType) {
@@ -58,7 +58,7 @@ namespace SUP.AddressablesHelper {
                 }
             }
 
-            IsReady.StopWaiting();
+            WaitForInit.StopWaiting();
         }
 
         #endregion
@@ -66,7 +66,7 @@ namespace SUP.AddressablesHelper {
         #region Single Asset Loading
 
         public WaitForAddressablesHelper LoadAsset<T>(string assetName, Action<T> onComplete) {
-            if (IsReady.keepWaiting) {
+            if (WaitForInit.keepWaiting) {
                 Debug.LogError("Addressables helper is not yet initialized. Check the status using AddressablesHelper.IsReady");
                 return null;
             }
@@ -101,7 +101,7 @@ namespace SUP.AddressablesHelper {
         #region Multiple Assets Loading
 
         public WaitForAddressablesHelper LoadAssets<T>(IEnumerable<string> assetNames, Action<IEnumerable<T>> onComplete) {
-            if (IsReady.keepWaiting) {
+            if (WaitForInit.keepWaiting) {
                 Debug.LogError("Addressables helper is not yet initialized. Check the status using AddressablesHelper.IsReady");
                 return null;
             }
