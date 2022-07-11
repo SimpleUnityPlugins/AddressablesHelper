@@ -14,7 +14,7 @@ namespace SUP.AddressablesHelper {
         private static AddressablesHelper _instance;
         private readonly Dictionary<Type, List<IResourceLocation>> _iResourcesLocations;
 
-        public static bool IsReady { get; private set; }
+        public static WaitForAddressablesHelper IsReady { get; private set; }
 
         public static AddressablesHelper Instance {
             get {
@@ -32,6 +32,7 @@ namespace SUP.AddressablesHelper {
 
         public static void Init(Dictionary<string, Type> labelAndTypes) {
             _instance = new AddressablesHelper(labelAndTypes);
+            IsReady = new WaitForAddressablesHelper();
         }
 
         private AddressablesHelper(Dictionary<string, Type> addressableLabelsAndType) {
@@ -41,32 +42,48 @@ namespace SUP.AddressablesHelper {
 
         private async void LoadResourcesLocations(Dictionary<string, Type> labelAndTypes) {
             foreach (var labelAndType in labelAndTypes) {
-                var resourceLocationsList = await Addressables.LoadResourceLocationsAsync(labelAndType.Key, labelAndType.Value).Task;
-                _iResourcesLocations.Add(labelAndType.Value, resourceLocationsList.ToList());
+                var label = labelAndType.Key;
+                var type = labelAndType.Value;
+                var resourceLocationsList = await Addressables.LoadResourceLocationsAsync(label, type).Task;
+
+                if (resourceLocationsList == null) {
+                    Debug.LogError($"No resource locations found for {label}");
+                    continue;
+                }
+
+                if (_iResourcesLocations.ContainsKey(type)) {
+                    _iResourcesLocations[type].AddRange(resourceLocationsList);
+                } else {
+                    _iResourcesLocations.Add(type, resourceLocationsList.ToList());
+                }
             }
 
-            IsReady = true;
+            IsReady.StopWaiting();
         }
 
         #endregion
 
-
         #region Single Asset Loading
 
         public WaitForAddressablesHelper LoadAsset<T>(string assetName, Action<T> onComplete) {
-            if (!IsReady) {
+            if (IsReady.keepWaiting) {
                 Debug.LogError("Addressables helper is not yet initialized. Check the status using AddressablesHelper.IsReady");
                 return null;
             }
 
             var type = typeof(T);
             if (!_iResourcesLocations.ContainsKey(type)) {
-                Debug.LogError($"No label found: {type}");
+                Debug.LogError($"No asset found of type: {type}");
                 return null;
             }
 
             var waitForAddressablesHelper = new WaitForAddressablesHelper();
             var iResourceLocation = _iResourcesLocations[type].Find(location => location.ToString().Contains(assetName));
+
+            if (iResourceLocation == null) {
+                Debug.LogError($"No asset found matching: {assetName}");
+                return null;
+            }
 
             var operationHandle = Addressables.LoadAssetAsync<T>(iResourceLocation);
             operationHandle.Completed += handle => {
@@ -84,19 +101,24 @@ namespace SUP.AddressablesHelper {
         #region Multiple Assets Loading
 
         public WaitForAddressablesHelper LoadAssets<T>(IEnumerable<string> assetNames, Action<IEnumerable<T>> onComplete) {
-            if (!IsReady) {
+            if (IsReady.keepWaiting) {
                 Debug.LogError("Addressables helper is not yet initialized. Check the status using AddressablesHelper.IsReady");
                 return null;
             }
 
             var type = typeof(T);
             if (!_iResourcesLocations.ContainsKey(type)) {
-                Debug.LogError($"No label found: {type}");
+                Debug.LogError($"No asset found of type: {type}");
                 return null;
             }
 
             var waitForAddressablesHelper = new WaitForAddressablesHelper();
             IEnumerable<IResourceLocation> iResourceLocations = assetNames.SelectMany(name => _iResourcesLocations[type].Where(location => location.ToString().Contains(name))).ToList();
+
+            if (iResourceLocations.Count() == 0) {
+                Debug.LogError($"No assets found matching: {assetNames.Aggregate("", (s1, s2) => s1 = s1 + "\n" + s2)}");
+                return null;
+            }
 
             var operationHandle = Addressables.LoadAssetsAsync<T>(iResourceLocations, null);
             operationHandle.Completed += handle => {
@@ -111,7 +133,6 @@ namespace SUP.AddressablesHelper {
         #endregion
 
         #endregion
-
 
         #region Default Static Functions
 
