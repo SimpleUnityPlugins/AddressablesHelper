@@ -65,12 +65,13 @@ To use the following functions you must initialize the addressables helper class
 
 ```csharp
     private void InitAddressablesHelper() {
-        var labelsAndTypeDict = new Dictionary<string, Type> {
-            {"GamePrefabs", typeof(GameObject)}, // {AssetLabel , TypeOfAsset}
+        var labelsAndTypeDict = new Dictionary<string, Type> { // {AssetLabel , TypeOfAsset}
+            {"GamePrefabs", typeof(GameObject)}, 
+            {"GameButtons", typeof(GameObject)}, // Multiple labels for same type of asset.
             {"Sprites", typeof(Sprite)},
             {"SpriteAtlas", typeof(SpriteAtlas)},
-            {"Json", typeof(TextAsset)},
-            {"Materials", typeof(Material)}
+            {"Materials", typeof(Material)},
+            {"Json", typeof(TextAsset)}
         };
         AddressablesHelper.Init(labelsAndTypeDict);
     }
