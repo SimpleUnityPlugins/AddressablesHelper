@@ -108,6 +108,22 @@ Note: No need to pass the full asset addresses, matches the given string to exis
 
 ---
 
+### Do Not Destroy On Load
+
+All assets loaded using this class are unloaded on when a scene unloads, to prevent this pass doNotDestroyOnLoad parameter as true. This is false by default.
+
+```csharp
+    private IEnumerator LoadAssets() {
+        var gameObjectNames = new[] {"Game1", "Game2"};
+        List<GameObject> gamePrefabs;
+        yield return AddressablesHelper.Instance.LoadAssets<GameObject>(gameObjectNames, gameObjCollections => gamePrefabs = gameObjCollections.ToList(), true); // doNotDestroyOnLoad = true
+    }
+```
+
+Note: No need to pass the full asset addresses, matches the given string to existing asset addresses.
+
+---
+
 ## Demo Script  
 
 ```csharp
