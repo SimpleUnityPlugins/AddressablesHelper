@@ -4,7 +4,9 @@ using System;
 using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
+using UnityEngine.SceneManagement;
 using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
 using UnityEngine.ResourceManagement.ResourceLocations;
 
 namespace SUP.AddressablesHelper {
@@ -13,6 +15,7 @@ namespace SUP.AddressablesHelper {
 
         private static AddressablesHelper _instance;
         private readonly Dictionary<Type, List<IResourceLocation>> _iResourcesLocations;
+        private static List<AsyncOperationHandle> _asyncOperationHandlesList;
 
         public static WaitForAddressablesHelper WaitForInit { get; private set; }
 
@@ -32,6 +35,8 @@ namespace SUP.AddressablesHelper {
 
         public static void Init(Dictionary<string, Type> labelAndTypes) {
             _instance = new AddressablesHelper(labelAndTypes);
+            _asyncOperationHandlesList = new List<AsyncOperationHandle>();
+            SceneManager.sceneUnloaded += OnSceneUnloaded;
             WaitForInit = new WaitForAddressablesHelper();
         }
 
@@ -41,6 +46,7 @@ namespace SUP.AddressablesHelper {
         }
 
         private async void LoadResourcesLocations(Dictionary<string, Type> labelAndTypes) {
+            // ReSharper disable once UseDeconstruction
             foreach (var labelAndType in labelAndTypes) {
                 var label = labelAndType.Key;
                 var type = labelAndType.Value;
@@ -65,7 +71,7 @@ namespace SUP.AddressablesHelper {
 
         #region Single Asset Loading
 
-        public WaitForAddressablesHelper LoadAsset<T>(string assetName, Action<T> onComplete) {
+        public WaitForAddressablesHelper LoadAsset<T>(string assetName, Action<T> onComplete, bool doNotDestroyOnLoad = false) {
             if (WaitForInit.keepWaiting) {
                 Debug.LogError("Addressables helper is not yet initialized. Check the status using AddressablesHelper.IsReady");
                 return null;
@@ -89,8 +95,10 @@ namespace SUP.AddressablesHelper {
             operationHandle.Completed += handle => {
                 var loadedAsset = handle.Result;
                 onComplete.Invoke(loadedAsset);
-                Addressables.Release(loadedAsset);
                 waitForAddressablesHelper.StopWaiting();
+
+                if (!doNotDestroyOnLoad)
+                    _asyncOperationHandlesList.Add(handle);
             };
 
             return waitForAddressablesHelper;
@@ -100,7 +108,7 @@ namespace SUP.AddressablesHelper {
 
         #region Multiple Assets Loading
 
-        public WaitForAddressablesHelper LoadAssets<T>(IEnumerable<string> assetNames, Action<IEnumerable<T>> onComplete) {
+        public WaitForAddressablesHelper LoadAssets<T>(IEnumerable<string> assetNames, Action<IEnumerable<T>> onComplete, bool doNotDestroyOnLoad = false) {
             if (WaitForInit.keepWaiting) {
                 Debug.LogError("Addressables helper is not yet initialized. Check the status using AddressablesHelper.IsReady");
                 return null;
@@ -113,10 +121,11 @@ namespace SUP.AddressablesHelper {
             }
 
             var waitForAddressablesHelper = new WaitForAddressablesHelper();
-            IEnumerable<IResourceLocation> iResourceLocations = assetNames.SelectMany(name => _iResourcesLocations[type].Where(location => location.ToString().Contains(name))).ToList();
+            var assetNamesArray = assetNames as string[] ?? assetNames.ToArray();
+            IEnumerable<IResourceLocation> iResourceLocations = assetNamesArray.SelectMany(name => _iResourcesLocations[type].Where(location => location.ToString().Contains(name))).ToList();
 
-            if (iResourceLocations.Count() == 0) {
-                Debug.LogError($"No assets found matching: {assetNames.Aggregate("", (s1, s2) => s1 = s1 + "\n" + s2)}");
+            if (!iResourceLocations.Any()) {
+                Debug.LogError($"No assets found matching: {assetNamesArray.Aggregate("", (s1, s2) => s1 + "\n" + s2)}");
                 return null;
             }
 
@@ -124,8 +133,10 @@ namespace SUP.AddressablesHelper {
             operationHandle.Completed += handle => {
                 var loadedAsset = handle.Result;
                 onComplete.Invoke(loadedAsset);
-                Addressables.Release(loadedAsset);
                 waitForAddressablesHelper.StopWaiting();
+                
+                if (!doNotDestroyOnLoad)
+                    _asyncOperationHandlesList.Add(handle);
             };
             return waitForAddressablesHelper;
         }
@@ -138,27 +149,31 @@ namespace SUP.AddressablesHelper {
 
         #region By Address
 
-        public static WaitForAddressablesHelper LoadAssetByAddress<T>(string assetAddress, Action<T> onComplete) {
+        public static WaitForAddressablesHelper LoadAssetByAddress<T>(string assetAddress, Action<T> onComplete, bool doNotDestroyOnLoad = false) {
             var waitForAddressablesHelper = new WaitForAddressablesHelper();
             var operationHandle = Addressables.LoadAssetAsync<T>(assetAddress);
             operationHandle.Completed += handle => {
                 var loadedAsset = handle.Result;
                 onComplete.Invoke(loadedAsset);
-                Addressables.Release(loadedAsset);
                 waitForAddressablesHelper.StopWaiting();
+                
+                if (!doNotDestroyOnLoad)
+                    _asyncOperationHandlesList.Add(handle);
             };
 
             return waitForAddressablesHelper;
         }
 
-        public static WaitForAddressablesHelper LoadAssetsByAddress<T>(IEnumerable<string> assetAddresses, Action<IEnumerable<T>> onComplete) {
+        public static WaitForAddressablesHelper LoadAssetsByAddress<T>(IEnumerable<string> assetAddresses, Action<IEnumerable<T>> onComplete, bool doNotDestroyOnLoad = false) {
             var waitForAddressablesHelper = new WaitForAddressablesHelper();
             var operationHandle = Addressables.LoadAssetsAsync<T>(assetAddresses, null, Addressables.MergeMode.Union);
             operationHandle.Completed += handle => {
                 var loadedAsset = handle.Result;
                 onComplete.Invoke(loadedAsset);
-                Addressables.Release(loadedAsset);
                 waitForAddressablesHelper.StopWaiting();
+                
+                if (!doNotDestroyOnLoad)
+                    _asyncOperationHandlesList.Add(handle);
             };
 
             return waitForAddressablesHelper;
@@ -168,24 +183,38 @@ namespace SUP.AddressablesHelper {
 
         #region By Labels
 
-        public static WaitForAddressablesHelper LoadAssetsByLabel<T>(string label, Action<IEnumerable<T>> onComplete) {
+        public static WaitForAddressablesHelper LoadAssetsByLabel<T>(string label, Action<IEnumerable<T>> onComplete, bool doNotDestroyOnLoad = false) {
             return LoadAssetsByLabels(new[] {label}, onComplete);
         }
 
-        public static WaitForAddressablesHelper LoadAssetsByLabels<T>(IEnumerable<string> label, Action<IEnumerable<T>> onComplete) {
+        public static WaitForAddressablesHelper LoadAssetsByLabels<T>(IEnumerable<string> label, Action<IEnumerable<T>> onComplete, bool doNotDestroyOnLoad = false) {
             var waitForAddressablesHelper = new WaitForAddressablesHelper();
             var operationHandle = Addressables.LoadAssetsAsync<T>(label, null, Addressables.MergeMode.Union);
             operationHandle.Completed += handle => {
                 var loadedAsset = handle.Result;
                 onComplete.Invoke(loadedAsset);
-                Addressables.Release(loadedAsset);
                 waitForAddressablesHelper.StopWaiting();
+                
+                if (!doNotDestroyOnLoad)
+                    _asyncOperationHandlesList.Add(handle);
             };
 
             return waitForAddressablesHelper;
         }
 
         #endregion
+
+        #endregion
+
+        #region Release handles on scene unload
+
+        private static void OnSceneUnloaded(Scene scene) {
+            foreach (var operationHandle in _asyncOperationHandlesList.Where(operationHandle => operationHandle.IsValid())) {
+                Addressables.Release(operationHandle);
+            }
+
+            _asyncOperationHandlesList.Clear();
+        }
 
         #endregion
     }
