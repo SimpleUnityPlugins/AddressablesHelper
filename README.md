@@ -120,8 +120,6 @@ All assets loaded using this class are unloaded on when a scene unloads, to prev
     }
 ```
 
-Note: No need to pass the full asset addresses, matches the given string to existing asset addresses.
-
 ---
 
 ## Demo Script  
